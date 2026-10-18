@@ -1,0 +1,8 @@
+.venv/
+.env
+.git/
+.vscode/
+tests/
+scripts/
+prototype_threshold.py
+__pycache__/
