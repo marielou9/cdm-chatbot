@@ -32,6 +32,7 @@ def load_index() -> Collection:
     stored = json.loads(EMBEDDINGS_FILE.read_text()) if EMBEDDINGS_FILE.is_file() else {}
 
     def stored_embed(texts: list[str], task_type: str) -> list[list[float]]:
+        """Return the stored vectors, raising RuntimeError if any text has none."""
         missing = [text for text in texts if text not in stored]
         if missing:
             raise RuntimeError(
@@ -57,10 +58,14 @@ app = FastAPI(title="CDM Chatbot", lifespan=lifespan)
 
 
 class Question(BaseModel):
+    """Carry the question text, at least one character after trimming spaces."""
+
     question: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
 
 
 class AnswerResponse(BaseModel):
+    """Carry the answer and its sources as "layer entity kind" labels."""
+
     answer: str
     sources: list[str]
 

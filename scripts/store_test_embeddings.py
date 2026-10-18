@@ -46,6 +46,7 @@ def build_test_entries() -> list[Entry]:
 
 
 def main():
+    """Embed the test entries and questions and write them to the test embeddings file."""
     entries = build_test_entries()
     documents = [entry.embed_text for entry in entries]
     stored = {

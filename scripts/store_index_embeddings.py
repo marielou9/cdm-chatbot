@@ -10,6 +10,7 @@ FREE_TIER_PAUSE_SECONDS = 61
 
 
 def main():
+    """Embed every distinct index text and write the vectors to the embeddings file."""
     texts = sorted({entry.embed_text for entry in build_index_entries()})
     vectors = []
     for start in range(0, len(texts), BATCH_SIZE):

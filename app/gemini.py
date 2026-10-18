@@ -34,10 +34,7 @@ ANSWER_MODEL = "gemini-3.5-flash-lite"
 
 
 def complete(prompt: str) -> str:
-    """Send a prompt to the Gemini answer model and return its text reply.
-
-    Temperature 0 makes the model pick the most likely answer, so the same question gives the same answer.
-    """
+    """Send a prompt to the Gemini answer model at temperature 0 and return its text reply."""
     client = genai.Client()
     config = types.GenerateContentConfig(temperature=0)
     return client.models.generate_content(model=ANSWER_MODEL, contents=prompt, config=config).text

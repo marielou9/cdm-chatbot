@@ -17,6 +17,15 @@ CAMEL_CASE_NAME = re.compile(r"\b(?=\w*[a-z])[A-Z][a-z0-9]*[A-Z]\w*\b")
 
 @dataclass
 class Entry:
+    """Hold one searchable text about an entity.
+
+    text: the full text the language model reads.
+    entity: the entity name, empty for the catalog.
+    layer: the layer of the entity, like banking.
+    kind: overview, attributes, relationships or catalog.
+    embed_text: the text the vector is built from, the same as text unless set.
+    """
+
     text: str
     entity: str
     layer: str
@@ -24,6 +33,7 @@ class Entry:
     embed_text: str = ""
 
     def __post_init__(self):
+        """Use the full text for the vector when no shorter embed text is given."""
         if not self.embed_text:
             self.embed_text = self.text
 
@@ -91,6 +101,8 @@ def build_catalog_entry(entities: list[Entity]) -> Entry:
 
 @dataclass
 class Hit:
+    """Pair a found entry with its cosine similarity to the question, from 0 to 1."""
+
     entry: Entry
     score: float
 

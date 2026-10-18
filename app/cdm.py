@@ -5,6 +5,13 @@ import json
 
 @dataclass
 class Attribute:
+    """Describe one plain field of an entity.
+
+    name: the field name, like annualReviewDate.
+    data_type: the CDM data type, like dateTime or listLookup.
+    description: the CDM description text, empty if the file has none.
+    """
+
     name: str
     data_type: str = ""
     description: str = ""
@@ -12,6 +19,13 @@ class Attribute:
 
 @dataclass
 class Relationship:
+    """Describe one link from an entity to another entity.
+
+    attribute: the entity attribute holding the link, like enrollmentBranch.
+    target: the entity the link points to, like Branch.
+    foreign_key: the field storing the target's id, like enrollmentBranchId.
+    """
+
     attribute: str
     target: str
     foreign_key: str = ""
@@ -19,6 +33,16 @@ class Relationship:
 
 @dataclass
 class Entity:
+    """Hold one CDM entity with everything it inherits.
+
+    name: the entity name, like Account.
+    layer: the folder the entity file sits in, like banking or crmCommon.
+    description: the CDM description text.
+    extends: layer and name of the parent, like "crmCommon Account", empty without a CDM parent.
+    attributes: plain fields, inherited ones first.
+    relationships: links to other entities, own and inherited.
+    """
+
     name: str
     layer: str = ""
     description: str = ""

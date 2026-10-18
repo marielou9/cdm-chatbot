@@ -24,6 +24,7 @@ def index():
 
 
 def first_hit(index, question_number):
+    """Return the best entry for a numbered test question."""
     hits = search(index, QUESTIONS[question_number - 1], stored_embed, THRESHOLD)
     return hits[0].entry
 

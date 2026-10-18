@@ -26,6 +26,8 @@ ANSWER_PROMPT = (
 
 @dataclass
 class Answer:
+    """Hold the answer text and the entries it is based on, best first."""
+
     text: str
     sources: list[Entry] = field(default_factory=list)
 
