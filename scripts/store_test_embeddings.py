@@ -3,9 +3,9 @@
 import json
 from pathlib import Path
 
-from app.cdm import load_entities
+from app.api import build_index_entries
 from app.gemini import embed
-from app.knowledge_base import Entry, build_catalog_entry, build_entries
+from app.knowledge_base import Entry
 
 ROOT = Path(__file__).parent.parent
 OUTPUT = ROOT / "tests" / "testdata" / "embeddings.json"
@@ -37,12 +37,12 @@ QUESTIONS = [
 
 
 def build_test_entries() -> list[Entry]:
-    """Build the entries of the test entities plus the banking catalog from the real data."""
-    entities = load_entities(ROOT / "data" / "cdm", "/manifests/bankingAccelerator.manifest.cdm.json")
-    chosen = [e for e in entities if (e.layer, e.name) in TEST_ENTITIES]
-    entries = [entry for entity in chosen for entry in build_entries(entity)]
-    entries.append(build_catalog_entry([e for e in entities if e.layer == "banking"]))
-    return entries
+    """Pick the entries of the test entities plus the banking catalog from the app's index entries."""
+    return [
+        entry
+        for entry in build_index_entries()
+        if (entry.layer, entry.entity) in TEST_ENTITIES or entry.kind == "catalog"
+    ]
 
 
 def main():
