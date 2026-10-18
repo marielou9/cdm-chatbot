@@ -98,3 +98,13 @@ def test_inherited_attributes_come_first():
     child = load_entities(TESTDATA, "/core/child/child.manifest.cdm.json")[0]
 
     assert [a.name for a in child.attributes] == ["p1", "p2", "p3", "c1"]
+
+
+def test_missing_entity_in_file_raises_clear_error():
+    with pytest.raises(ValueError, match="Entity 'Ghost' not found"):
+        load_entities(TESTDATA, "/core/child/ghost.manifest.cdm.json")
+
+
+def test_unknown_moniker_raises_clear_error():
+    with pytest.raises(ValueError, match="Moniker 'base_Missing' not found"):
+        load_entities(TESTDATA, "/core/child/orphan.manifest.cdm.json")

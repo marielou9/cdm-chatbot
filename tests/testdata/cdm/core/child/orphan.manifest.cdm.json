@@ -1,0 +1,7 @@
+{
+  "jsonSchemaSemanticVersion": "1.0.0",
+  "manifestName": "orphan",
+  "entities": [
+    { "type": "LocalEntity", "entityName": "Orphan", "entityPath": "Orphan.cdm.json/Orphan" }
+  ]
+}

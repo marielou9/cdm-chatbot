@@ -62,9 +62,15 @@ def _load_entity(root: Path, path: Path, name: str) -> Entity:
 
 
 def _find_definition(path: Path, name: str) -> dict:
-    """Return the definition of the named entity inside a CDM file."""
+    """Return the definition of the named entity inside a CDM file.
+
+    Raises ValueError if the file has no entity with that name.
+    """
     document = json.loads(path.read_text())
-    return next(d for d in document["definitions"] if d.get("entityName") == name)
+    definition = next((d for d in document["definitions"] if d.get("entityName") == name), None)
+    if definition is None:
+        raise ValueError(f"Entity '{name}' not found in {path}")
+    return definition
 
 
 def _own_attributes(definition: dict) -> list[Attribute]:
@@ -128,9 +134,14 @@ def _load_parent(root: Path, path: Path, definition: dict) -> Entity | None:
 
 
 def _resolve_moniker(root: Path, folder: Path, moniker: str) -> Path:
-    """Find the file a moniker points to, using the folder's _allImports.cdm.json."""
+    """Find the file a moniker points to, using the folder's _allImports.cdm.json.
+
+    Raises ValueError if the folder's imports do not define the moniker.
+    """
     imports = json.loads((folder / "_allImports.cdm.json").read_text())["imports"]
-    corpus_path = next(i["corpusPath"] for i in imports if i.get("moniker") == moniker)
+    corpus_path = next((i["corpusPath"] for i in imports if i.get("moniker") == moniker), None)
+    if corpus_path is None:
+        raise ValueError(f"Moniker '{moniker}' not found in {folder / '_allImports.cdm.json'}")
     return _resolve_path(root, folder, corpus_path)
 
 

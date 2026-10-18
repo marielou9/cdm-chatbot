@@ -1,0 +1,7 @@
+{
+  "jsonSchemaSemanticVersion": "1.0.0",
+  "imports": [{ "corpusPath": "_allImports.cdm.json" }],
+  "definitions": [
+    { "entityName": "Orphan", "extendsEntity": "base_Missing/Missing", "description": "Extends an unknown moniker." }
+  ]
+}
