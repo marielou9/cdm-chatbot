@@ -1,0 +1,6 @@
+{
+  "jsonSchemaSemanticVersion": "1.0.0",
+  "imports": [
+    { "corpusPath": "/core/base/Parent.cdm.json", "moniker": "base_Parent" }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "jsonSchemaSemanticVersion": "1.0.0",
+  "imports": [{ "corpusPath": "_allImports.cdm.json" }],
+  "definitions": [
+    {
+      "entityName": "Child",
+      "extendsEntity": "base_Parent/Parent",
+      "hasAttributes": [
+        {
+          "attributeGroupReference": {
+            "attributeGroupName": "attributesAddedAtThisScope",
+            "members": [
+              { "name": "c1", "purpose": "hasA", "dataType": "currency", "description": "Child field." },
+              {
+                "entity": {
+                  "entityReference": "Branch",
+                  "appliedTraits": [
+                    { "traitReference": "is.identifiedBy", "arguments": ["Branch/(resolvedAttributes)/branchId"] }
+                  ]
+                },
+                "name": "branch",
+                "resolutionGuidance": {
+                  "entityByReference": {
+                    "foreignKeyAttribute": { "name": "branchId", "purpose": "hasA", "dataType": "entityId" }
+                  }
+                },
+                "description": "The branch this child belongs to."
+              }
+            ]
+          }
+        }
+      ],
+      "displayName": "Child",
+      "description": "A child entity for tests."
+    }
+  ]
+}

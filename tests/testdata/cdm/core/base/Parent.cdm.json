@@ -1,0 +1,64 @@
+{
+  "jsonSchemaSemanticVersion": "1.0.0",
+  "definitions": [
+    {
+      "entityName": "Parent",
+      "extendsEntity": "CdsStandard",
+      "hasAttributes": [
+        {
+          "attributeGroupReference": {
+            "attributeGroupName": "attributesAddedAtThisScope",
+            "members": [
+              {
+                "name": "p1",
+                "purpose": "hasA",
+                "dataType": "string",
+                "description": "First parent field."
+              },
+              {
+                "name": "p2",
+                "purpose": "hasA",
+                "dataType": "dateTime",
+                "description": "Second parent field."
+              },
+              {
+                "name": "p3",
+                "purpose": "hasA",
+                "dataType": {
+                  "dataTypeReference": "listLookup"
+                },
+                "description": "A field with a list of allowed values."
+              },
+              {
+                "entity": {
+                  "entityReference": "User",
+                  "appliedTraits": [
+                    {
+                      "traitReference": "is.identifiedBy",
+                      "arguments": [
+                        "User/(resolvedAttributes)/userId"
+                      ]
+                    }
+                  ]
+                },
+                "name": "owner",
+                "resolutionGuidance": {
+                  "entityByReference": {
+                    "foreignKeyAttribute": {
+                      "name": "ownerId",
+                      "purpose": "hasA",
+                      "dataType": "entityId"
+                    }
+                  }
+                },
+                "description": "The user who owns the record."
+              }
+            ]
+          }
+        }
+      ],
+      "displayName": "Parent",
+      "description": "A parent entity for tests."
+    }
+  ]
+}
