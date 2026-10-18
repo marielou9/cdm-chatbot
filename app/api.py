@@ -12,12 +12,11 @@ from pydantic import BaseModel, StringConstraints
 from app import gemini
 from app.answerer import ask
 from app.cdm import load_entities
-from app.knowledge_base import Entry, build_catalog_entry, build_entries, create_index, search
+from app.knowledge_base import THRESHOLD, Entry, build_catalog_entry, build_entries, create_index, search
 
 CDM_ROOT = Path(__file__).parent.parent / "data" / "cdm"
 MANIFEST = "/manifests/bankingAccelerator.manifest.cdm.json"
 EMBEDDINGS_FILE = Path(__file__).parent.parent / "data" / "embeddings.json"
-THRESHOLD = 0.6
 
 
 def build_index_entries() -> list[Entry]:

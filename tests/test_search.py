@@ -3,11 +3,10 @@ from pathlib import Path
 
 import pytest
 
-from app.knowledge_base import create_index, search
+from app.knowledge_base import THRESHOLD, create_index, search
 from scripts.store_test_embeddings import QUESTIONS, build_test_entries
 
 STORED = json.loads((Path(__file__).parent / "testdata" / "embeddings.json").read_text())
-THRESHOLD = 0.6
 
 
 def stored_embed(texts: list[str], task_type: str) -> list[list[float]]:

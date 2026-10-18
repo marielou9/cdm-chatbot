@@ -10,6 +10,7 @@ from app.cdm import Entity
 
 Embed = Callable[[list[str], str], list[list[float]]]
 MAX_HITS = 5
+THRESHOLD = 0.6
 QUOTED_NAME = re.compile(r"'([A-Z]\w*)'")
 CAMEL_CASE_NAME = re.compile(r"\b(?=\w*[a-z])[A-Z][a-z0-9]*[A-Z]\w*\b")
 
