@@ -45,13 +45,22 @@ More questions to try:
 - Which entities are in the Banking model?
 - What attributes does the 'CryptoWallet' entity have? (not in the CDM, the service says so)
 
-## How it works
+## Overview
 
-1. **Load,** `app/cdm.py` reads the CDM manifests and entity files and resolves inheritance (`extendsEntity`) and relationships.
-2. **Entries,** `app/knowledge_base.py` turns every entity into three short texts: an overview, its attributes and its relationships, plus one catalog entry listing all banking entities.
-3. **Index,** the entries go into an in-memory Chroma collection, using vectors from `gemini-embedding-001` that are computed once and stored in `data/embeddings.json`.
-4. **Search,** a question that names an unknown entity gets no results. Otherwise the closest entries above a similarity threshold are returned.
-5. **Answer,** `app/answerer.py` searches the full question first. If nothing is found, it returns a fixed "no information" answer without calling Gemini. Otherwise Gemini splits the question into up to three sub-questions, each is searched, and Gemini answers only from the found entries.
+**Stack**
+- Python 3.14, FastAPI
+- Chroma as vector database, embedded and in memory
+- Gemini: `gemini-embedding-001` for embeddings, `gemini-3.5-flash-lite` for answers
+- Docker
+
+**Data**
+- Microsoft Common Data Model, the Dynamics 365 Banking accelerator (24 entities) and the 23 common entities it builds on, with inheritance resolved.
+
+**Embedding and retrieval**
+- Each entity becomes three short texts, an overview, its attributes and its relationships, plus one catalog of all banking entities.
+- The vectors are computed once and stored in `data/embeddings.json`, so the service starts without embedding calls.
+- A question is split into sub-questions, and the answer may only use the entries found for them.
+- If a question names an unknown entity or nothing matches closely enough, the answer is a fixed "no information".
 
 ## Development
 
