@@ -51,7 +51,7 @@ More questions to try:
 2. **Entries,** `app/knowledge_base.py` turns every entity into three short texts: an overview, its attributes and its relationships, plus one catalog entry listing all banking entities.
 3. **Index,** the entries go into an in-memory Chroma collection, using vectors from `gemini-embedding-001` that are computed once and stored in `data/embeddings.json`.
 4. **Search,** a question that names an unknown entity gets no results. Otherwise the closest entries above a similarity threshold are returned.
-5. **Answer,** `app/answerer.py` splits the question into sub-questions, searches each, and asks Gemini to answer only from the found entries.
+5. **Answer,** `app/answerer.py` searches the full question first. If nothing is found, it returns a fixed "no information" answer without calling Gemini. Otherwise Gemini splits the question into up to three sub-questions, each is searched, and Gemini answers only from the found entries.
 
 ## Development
 
