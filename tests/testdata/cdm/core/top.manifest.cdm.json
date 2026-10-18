@@ -1,0 +1,10 @@
+{
+  "jsonSchemaSemanticVersion": "1.0.0",
+  "manifestName": "top",
+  "entities": [
+    { "type": "LocalEntity", "entityName": "Parent", "entityPath": "/core/base/Parent.cdm.json/Parent" }
+  ],
+  "subManifests": [
+    { "manifestName": "child", "definition": "/core/child/child.manifest.cdm.json" }
+  ]
+}

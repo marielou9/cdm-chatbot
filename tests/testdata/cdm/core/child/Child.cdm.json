@@ -1,6 +1,10 @@
 {
   "jsonSchemaSemanticVersion": "1.0.0",
-  "imports": [{ "corpusPath": "_allImports.cdm.json" }],
+  "imports": [
+    {
+      "corpusPath": "_allImports.cdm.json"
+    }
+  ],
   "definitions": [
     {
       "entityName": "Child",
@@ -10,22 +14,37 @@
           "attributeGroupReference": {
             "attributeGroupName": "attributesAddedAtThisScope",
             "members": [
-              { "name": "c1", "purpose": "hasA", "dataType": "currency", "description": "Child field." },
+              {
+                "name": "c1",
+                "purpose": "hasA",
+                "dataType": "currency",
+                "description": "Child field."
+              },
               {
                 "entity": {
                   "entityReference": "Branch",
                   "appliedTraits": [
-                    { "traitReference": "is.identifiedBy", "arguments": ["Branch/(resolvedAttributes)/branchId"] }
+                    {
+                      "traitReference": "is.identifiedBy",
+                      "arguments": [
+                        "Branch/(resolvedAttributes)/branchId"
+                      ]
+                    }
                   ]
                 },
                 "name": "branch",
                 "resolutionGuidance": {
                   "entityByReference": {
-                    "foreignKeyAttribute": { "name": "branchId", "purpose": "hasA", "dataType": "entityId" }
+                    "foreignKeyAttribute": {
+                      "name": "branchId",
+                      "purpose": "hasA",
+                      "dataType": "entityId"
+                    }
                   }
                 },
                 "description": "The branch this child belongs to."
-              }
+              },
+              "ownerIdAttribute"
             ]
           }
         }

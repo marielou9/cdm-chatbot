@@ -47,3 +47,34 @@ def test_entity_attributes_become_relationships_including_inherited():
 def test_missing_manifest_raises_clear_error():
     with pytest.raises(FileNotFoundError, match="CDM manifest not found"):
         load_entities(TESTDATA, "/core/nowhere/missing.manifest.cdm.json")
+
+
+def test_manifest_with_absolute_entity_paths():
+    entities = load_entities(TESTDATA, "/core/top.manifest.cdm.json")
+
+    assert "Parent" in {e.name for e in entities}
+
+
+def test_sub_manifests_are_loaded():
+    entities = load_entities(TESTDATA, "/core/top.manifest.cdm.json")
+
+    assert {e.name for e in entities} == {"Parent", "Child"}
+
+
+def test_named_attribute_references_are_skipped():
+    child = load_entities(TESTDATA, "/core/child/child.manifest.cdm.json")[0]
+
+    assert "ownerIdAttribute" not in {a.name for a in child.attributes}
+
+
+REAL_CDM = Path(__file__).parent.parent / "data" / "cdm"
+
+
+def test_real_banking_account_is_resolved():
+    entities = load_entities(REAL_CDM, "/manifests/bankingAccelerator.manifest.cdm.json")
+
+    account = next(e for e in entities if e.name == "Account" and e.layer == "banking")
+    names = {a.name for a in account.attributes}
+    assert "annualReviewDate" in names
+    assert "name" in names
+    assert account.extends == "crmCommon Account"

@@ -35,8 +35,11 @@ def load_entities(root: Path, manifest: str) -> list[Entity]:
     manifest_doc = json.loads(manifest_path.read_text())
     entities = []
     for entry in manifest_doc["entities"]:
-        file_name, entity_name = entry["entityPath"].split("/")
-        entities.append(_load_entity(root, manifest_path.parent / file_name, entity_name))
+        file_name, entity_name = entry["entityPath"].rsplit("/", 1)
+        entity_path = _resolve_path(root, manifest_path.parent, file_name)
+        entities.append(_load_entity(root, entity_path, entity_name))
+    for sub_manifest in manifest_doc.get("subManifests", []):
+        entities += load_entities(root, sub_manifest["definition"])
     return entities
 
 
@@ -67,31 +70,39 @@ def _find_definition(path: Path, name: str) -> dict:
 def _own_attributes(definition: dict) -> list[Attribute]:
     """Return the plain attributes an entity adds itself, without entity attributes."""
     attributes = []
-    for group in definition.get("hasAttributes", []):
-        for member in group["attributeGroupReference"]["members"]:
-            if "entity" not in member:
-                attributes.append(
-                    Attribute(member["name"], _data_type(member), member.get("description", ""))
-                )
+    for member in _members(definition):
+        if "entity" not in member:
+            attributes.append(
+                Attribute(member["name"], _data_type(member), member.get("description", ""))
+            )
     return attributes
 
 
 def _own_relationships(definition: dict) -> list[Relationship]:
     """Return the relationships an entity adds itself, one per entity attribute."""
     relationships = []
+    for member in _members(definition):
+        if "entity" in member:
+            foreign_key = (
+                member.get("resolutionGuidance", {})
+                .get("entityByReference", {})
+                .get("foreignKeyAttribute", {})
+                .get("name", "")
+            )
+            relationships.append(
+                Relationship(member["name"], member["entity"]["entityReference"], foreign_key)
+            )
+    return relationships
+
+
+def _members(definition: dict) -> list[dict]:
+    """Return the described attributes of an entity, skipping attributes given only by name."""
+    members = []
     for group in definition.get("hasAttributes", []):
         for member in group["attributeGroupReference"]["members"]:
-            if "entity" in member:
-                foreign_key = (
-                    member.get("resolutionGuidance", {})
-                    .get("entityByReference", {})
-                    .get("foreignKeyAttribute", {})
-                    .get("name", "")
-                )
-                relationships.append(
-                    Relationship(member["name"], member["entity"]["entityReference"], foreign_key)
-                )
-    return relationships
+            if isinstance(member, dict):
+                members.append(member)
+    return members
 
 
 def _load_parent(root: Path, path: Path, definition: dict) -> Entity | None:
@@ -108,7 +119,8 @@ def _resolve_moniker(root: Path, folder: Path, moniker: str) -> Path:
     """Find the file a moniker points to, using the folder's _allImports.cdm.json."""
     imports = json.loads((folder / "_allImports.cdm.json").read_text())["imports"]
     corpus_path = next(i["corpusPath"] for i in imports if i.get("moniker") == moniker)
-    return root / corpus_path.lstrip("/")
+    return _resolve_path(root, folder, corpus_path)
+
 
 def _data_type(member: dict) -> str:
     """Return the data type name, also for types given as an object like listLookup."""
@@ -116,3 +128,10 @@ def _data_type(member: dict) -> str:
     if isinstance(data_type, dict):
         data_type = data_type.get("dataTypeReference", "")
     return data_type
+
+
+def _resolve_path(root: Path, folder: Path, corpus_path: str) -> Path:
+    """Turn a CDM path into a file path, absolute ones start at the root, others at the folder."""
+    if corpus_path.startswith("/"):
+        return root / corpus_path.lstrip("/")
+    return folder / corpus_path
