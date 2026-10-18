@@ -79,3 +79,11 @@ def test_prompt_asks_for_the_exact_entity():
     ask(QUESTION, lambda question: [CONTACT], llm)
 
     assert "Name the exact entity for every statement." in llm.prompts[-1]
+
+
+def test_prompt_handles_undefined_terms():
+    llm = FakeLLM()
+
+    ask(QUESTION, lambda question: [CONTACT], llm)
+
+    assert "If the question uses a term the context does not define" in llm.prompts[-1]
