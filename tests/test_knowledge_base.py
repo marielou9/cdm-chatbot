@@ -44,3 +44,11 @@ def test_attributes_entry_embeds_only_names():
 
     assert attributes.embed_text == "banking Account has these attributes: availableLimit"
     assert "Total amount remaining" in attributes.text
+
+
+def test_overview_without_description_has_no_double_space():
+    entity = Entity(name="Account", layer="crmCommon", extends="foundationCommon Account")
+
+    overview = build_entries(entity)[0]
+
+    assert overview.text == "crmCommon Account: It extends foundationCommon Account."

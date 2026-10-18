@@ -45,10 +45,10 @@ def build_entries(entity: Entity) -> list[Entry]:
 
 def _overview_text(label: str, entity: Entity) -> str:
     """Describe what the entity is and which entity it extends."""
-    text = f"{label}: {entity.description}"
+    parts = [entity.description] if entity.description else []
     if entity.extends:
-        text += f" It extends {entity.extends}."
-    return text
+        parts.append(f"It extends {entity.extends}.")
+    return f"{label}: {' '.join(parts)}"
 
 
 def _attributes_text(label: str, entity: Entity) -> str:
