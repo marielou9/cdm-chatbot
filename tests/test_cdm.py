@@ -68,6 +68,13 @@ def test_polymorphic_lookup_becomes_one_relationship_per_option():
     assert {("customer", "Account", "customerId"), ("customer", "Contact", "customerId")} <= found
 
 
+def test_foreign_key_named_id_gets_attribute_prefix():
+    child = load_entities(TESTDATA, "/core/child/child.manifest.cdm.json")[0]
+
+    lead = next(r for r in child.relationships if r.attribute == "originatingLead")
+    assert lead.foreign_key == "originatingLeadId"
+
+
 def test_named_attribute_references_are_skipped():
     child = load_entities(TESTDATA, "/core/child/child.manifest.cdm.json")[0]
 

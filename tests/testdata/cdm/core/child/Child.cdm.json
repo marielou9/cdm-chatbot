@@ -76,6 +76,22 @@
                   }
                 },
                 "description": "The customer, an account or a contact."
+              },
+              {
+                "entity": {
+                  "entityReference": "Lead"
+                },
+                "name": "originatingLead",
+                "resolutionGuidance": {
+                  "entityByReference": {
+                    "foreignKeyAttribute": {
+                      "name": "id",
+                      "purpose": "hasA",
+                      "dataType": "entityId"
+                    }
+                  }
+                },
+                "description": "The lead the child came from."
               }
             ]
           }

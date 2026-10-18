@@ -102,6 +102,8 @@ def _relationships_of(member: dict) -> list[Relationship]:
         .get("foreignKeyAttribute", {})
         .get("name", "")
     )
+    if foreign_key == "id":
+        foreign_key = f"{name}Id"
     return [Relationship(name, reference, foreign_key)]
 
 
