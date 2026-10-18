@@ -56,7 +56,7 @@ def _load_entity(root: Path, path: Path, name: str) -> Entity:
     parent = _load_parent(root, path, definition)
     if parent is not None:
         entity.extends = f"{parent.layer} {parent.name}"
-        entity.attributes += parent.attributes
+        entity.attributes = parent.attributes + entity.attributes
         entity.relationships += parent.relationships
     return entity
 

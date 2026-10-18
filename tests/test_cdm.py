@@ -92,3 +92,9 @@ def test_real_banking_account_is_resolved():
     assert "annualReviewDate" in names
     assert "name" in names
     assert account.extends == "crmCommon Account"
+
+
+def test_inherited_attributes_come_first():
+    child = load_entities(TESTDATA, "/core/child/child.manifest.cdm.json")[0]
+
+    assert [a.name for a in child.attributes] == ["p1", "p2", "p3", "c1"]
