@@ -72,3 +72,14 @@ def test_stale_embeddings_give_clear_error(monkeypatch, tmp_path):
 
     with pytest.raises(RuntimeError, match="python -m scripts.store_index_embeddings"):
         api.load_index()
+
+
+def test_embedding_failure_returns_503(client):
+    def unreachable(question):
+        raise ConnectionError("429 RESOURCE_EXHAUSTED")
+
+    app.state.search = unreachable
+    response = client.post("/ask", json={"question": "How is an Account related to a Branch?"})
+
+    assert response.status_code == 503
+    assert "search is not available" in response.json()["detail"]

@@ -36,12 +36,13 @@ def ask(question: str, search: Search, complete: Complete) -> Answer:
     If the question itself finds nothing, the fixed no-information answer comes back
     without calling the language model.
     """
-    hits = search(question)
+    guarded_search = _guarded(search, "The search is not available")
+    hits = guarded_search(question)
     if not hits:
         return Answer(NO_INFORMATION)
-    llm = _guarded(complete)
+    llm = _guarded(complete, "The language model is not available")
     for sub_question in _sub_questions(question, llm):
-        hits += search(sub_question)
+        hits += guarded_search(sub_question)
     sources = _unique_best_first(hits)
     context = "\n\n".join(entry.text for entry in sources)
     return Answer(llm(ANSWER_PROMPT.format(context=context, question=question)), sources)
@@ -64,13 +65,14 @@ def _unique_best_first(hits: list[Hit]) -> list[Entry]:
     return [hit.entry for hit in sorted(best.values(), key=lambda hit: hit.score, reverse=True)]
 
 
-def _guarded(complete: Complete) -> Complete:
-    """Wrap the language model so any failure becomes one clear error for the caller."""
+def _guarded(function: Callable, failure: str) -> Callable:
+    """Wrap a call to an outside service so any failure becomes one clear error for the caller."""
 
-    def call(prompt: str) -> str:
+    def call(argument):
+        """Call the wrapped function and turn any failure into a RuntimeError naming the service."""
         try:
-            return complete(prompt)
+            return function(argument)
         except Exception as error:
-            raise RuntimeError(f"The language model is not available: {error}") from error
+            raise RuntimeError(f"{failure}: {error}") from error
 
     return call
