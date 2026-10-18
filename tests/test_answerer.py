@@ -3,26 +3,42 @@ import pytest
 from app.answerer import NO_INFORMATION, ask
 from app.knowledge_base import Entry, Hit
 
+# example question and what the fake model splits it into
 QUESTION = "How does a 'Contact' relate to an 'Organization'?"
 SUB_QUESTIONS = ["What is a Contact related to?", "How is an Organization connected to other entities?"]
+
+# two search hits
 CONTACT = Hit(Entry("banking Contact has these relationships: ...", "Contact", "banking", "relationships"), 0.70)
 ORGANIZATION = Hit(Entry("foundationCommon Organization: Top level ...", "Organization", "foundationCommon", "overview"), 0.69)
 
 
 class FakeLLM:
-    """Answers the split prompt with fixed sub-questions and records every prompt."""
+    """Answer the split prompt with fixed sub-questions and record every prompt."""
 
     def __init__(self):
+        """Start with no recorded prompts."""
+
         self.prompts = []
 
     def __call__(self, prompt: str) -> str:
+        """Record the prompt and return sub-questions or a fixed answer."""
+
         self.prompts.append(prompt)
+
+        # split prompt gets sub-questions
         if prompt.startswith("Split"):
             return "\n".join(SUB_QUESTIONS)
+
         return "A Contact reaches Organization through BusinessUnit."
 
 
+# ============================================================
+# Search flow
+# ============================================================
+
 def test_each_sub_question_is_searched():
+
+    # record what gets searched
     searched = []
 
     def search(question):
@@ -31,23 +47,12 @@ def test_each_sub_question_is_searched():
 
     ask(QUESTION, search, FakeLLM())
 
+    # full question first, then each sub-question
     assert searched == [QUESTION, *SUB_QUESTIONS]
 
 
-def test_prompt_holds_context_and_rule():
-    llm = FakeLLM()
-
-    answer = ask(QUESTION, lambda question: [CONTACT, ORGANIZATION], llm)
-
-    final_prompt = llm.prompts[-1]
-    assert "Answer only from the context below" in final_prompt
-    assert CONTACT.entry.text in final_prompt
-    assert ORGANIZATION.entry.text in final_prompt
-    assert QUESTION in final_prompt
-    assert answer.text == "A Contact reaches Organization through BusinessUnit."
-
-
 def test_no_hits_gives_fixed_answer_without_llm():
+
     def llm_must_not_be_called(prompt):
         raise AssertionError("the language model was called")
 
@@ -57,15 +62,37 @@ def test_no_hits_gives_fixed_answer_without_llm():
     assert answer.sources == []
 
 
-def test_llm_failure_gives_clear_error():
-    def unreachable_llm(prompt):
-        raise ConnectionError("429 RESOURCE_EXHAUSTED")
+def test_ask_does_not_change_the_search_result():
 
-    with pytest.raises(RuntimeError, match="language model is not available.*429"):
-        ask(QUESTION, lambda question: [CONTACT], unreachable_llm)
+    result = [CONTACT]
+
+    ask(QUESTION, lambda question: result, FakeLLM())
+
+    # caller's list untouched
+    assert result == [CONTACT]
+
+
+# ============================================================
+# Answer prompt
+# ============================================================
+
+def test_prompt_holds_context_and_rule():
+
+    llm = FakeLLM()
+
+    answer = ask(QUESTION, lambda question: [CONTACT, ORGANIZATION], llm)
+
+    # last prompt is the answer prompt
+    final_prompt = llm.prompts[-1]
+    assert "Answer only from the context below" in final_prompt
+    assert CONTACT.entry.text in final_prompt
+    assert ORGANIZATION.entry.text in final_prompt
+    assert QUESTION in final_prompt
+    assert answer.text == "A Contact reaches Organization through BusinessUnit."
 
 
 def test_prompt_allows_partial_answers():
+
     llm = FakeLLM()
 
     ask(QUESTION, lambda question: [CONTACT], llm)
@@ -74,6 +101,7 @@ def test_prompt_allows_partial_answers():
 
 
 def test_prompt_asks_for_the_exact_entity():
+
     llm = FakeLLM()
 
     ask(QUESTION, lambda question: [CONTACT], llm)
@@ -82,6 +110,7 @@ def test_prompt_asks_for_the_exact_entity():
 
 
 def test_prompt_handles_undefined_terms():
+
     llm = FakeLLM()
 
     ask(QUESTION, lambda question: [CONTACT], llm)
@@ -89,9 +118,14 @@ def test_prompt_handles_undefined_terms():
     assert "If the question uses a term the context does not define" in llm.prompts[-1]
 
 
-def test_ask_does_not_change_the_search_result():
-    result = [CONTACT]
+# ============================================================
+# Errors
+# ============================================================
 
-    ask(QUESTION, lambda question: result, FakeLLM())
+def test_llm_failure_gives_clear_error():
 
-    assert result == [CONTACT]
+    def unreachable_llm(prompt):
+        raise ConnectionError("429 RESOURCE_EXHAUSTED")
+
+    with pytest.raises(RuntimeError, match="language model is not available.*429"):
+        ask(QUESTION, lambda question: [CONTACT], unreachable_llm)
