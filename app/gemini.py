@@ -1,3 +1,5 @@
+"""Calls to the Gemini API, embeddings for search and text for answers."""
+
 import math
 
 from google import genai

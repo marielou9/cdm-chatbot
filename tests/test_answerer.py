@@ -1,3 +1,5 @@
+"""Tests for the answer flow, with a fake language model."""
+
 import pytest
 
 from app.answerer import NO_INFORMATION, ask

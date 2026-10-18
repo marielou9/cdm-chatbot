@@ -1,3 +1,5 @@
+"""Tests for the FastAPI endpoint, startup and error responses."""
+
 import pytest
 from fastapi.testclient import TestClient
 

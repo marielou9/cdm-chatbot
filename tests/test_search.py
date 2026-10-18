@@ -1,3 +1,5 @@
+"""Retrieval tests on real entries, with stored Gemini vectors instead of live calls."""
+
 import json
 from pathlib import Path
 

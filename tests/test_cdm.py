@@ -1,3 +1,5 @@
+"""Tests for loading CDM files, inheritance, relationships and errors."""
+
 from pathlib import Path
 
 import pytest

@@ -1,3 +1,9 @@
+"""Answer questions about the CDM from the search results.
+
+Searches the full question, splits it into sub-questions with the language model,
+searches those too, and lets the model answer only from the found entries.
+"""
+
 from collections.abc import Callable
 from dataclasses import dataclass, field
 

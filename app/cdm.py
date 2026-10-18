@@ -1,3 +1,9 @@
+"""Load Microsoft CDM entity definitions from manifest and entity files.
+
+Resolves inheritance along the extendsEntity chain and turns entity attributes
+into relationships, so every entity carries everything it inherits.
+"""
+
 from dataclasses import dataclass, field
 from pathlib import Path
 import json

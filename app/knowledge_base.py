@@ -1,3 +1,10 @@
+"""Turn CDM entities into searchable entries and search them.
+
+Each entity becomes an overview, an attributes and a relationships entry. The
+entries go into an in-memory Chroma index, the search checks entity names first
+and keeps only hits above a similarity threshold.
+"""
+
 import re
 import uuid
 from collections.abc import Callable

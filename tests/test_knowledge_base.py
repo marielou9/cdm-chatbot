@@ -1,3 +1,5 @@
+"""Tests for building entries and the catalog from entities."""
+
 import pytest
 
 from app.cdm import Attribute, Entity, Relationship

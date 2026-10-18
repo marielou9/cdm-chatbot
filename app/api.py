@@ -1,3 +1,8 @@
+"""FastAPI service that answers questions about the CDM Banking model.
+
+Builds the index from stored vectors at startup and offers POST /ask.
+"""
+
 import json
 import os
 from contextlib import asynccontextmanager
