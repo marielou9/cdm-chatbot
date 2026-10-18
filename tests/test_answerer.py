@@ -71,3 +71,11 @@ def test_prompt_allows_partial_answers():
     ask(QUESTION, lambda question: [CONTACT], llm)
 
     assert "If the context only partly answers the question, say what it contains and what is missing." in llm.prompts[-1]
+
+
+def test_prompt_asks_for_the_exact_entity():
+    llm = FakeLLM()
+
+    ask(QUESTION, lambda question: [CONTACT], llm)
+
+    assert "Name the exact entity for every statement." in llm.prompts[-1]
