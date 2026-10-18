@@ -63,3 +63,11 @@ def test_llm_failure_gives_clear_error():
 
     with pytest.raises(RuntimeError, match="language model is not available.*429"):
         ask(QUESTION, lambda question: [CONTACT], unreachable_llm)
+
+
+def test_prompt_allows_partial_answers():
+    llm = FakeLLM()
+
+    ask(QUESTION, lambda question: [CONTACT], llm)
+
+    assert "If the context only partly answers the question, say what it contains and what is missing." in llm.prompts[-1]

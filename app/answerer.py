@@ -14,7 +14,8 @@ SPLIT_PROMPT = (
 )
 ANSWER_PROMPT = (
     "Answer only from the context below, which describes entities of the Microsoft Common Data Model. "
-    "If the context does not contain the answer, say that the CDM data has no information about it. "
+    "If the context only partly answers the question, say what it contains and what is missing. "
+    "If it contains nothing relevant, say that the CDM data has no information about it. "
     "Do not add entities, attributes or relationships that are not in the context.\n\n"
     "Context:\n{context}\n\nQuestion: {question}"
 )
