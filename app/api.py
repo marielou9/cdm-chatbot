@@ -1,3 +1,4 @@
+import json
 import os
 from contextlib import asynccontextmanager
 from functools import partial
@@ -11,19 +12,36 @@ from pydantic import BaseModel, StringConstraints
 from app import gemini
 from app.answerer import ask
 from app.cdm import load_entities
-from app.knowledge_base import build_catalog_entry, build_entries, create_index, search
+from app.knowledge_base import Entry, build_catalog_entry, build_entries, create_index, search
 
 CDM_ROOT = Path(__file__).parent.parent / "data" / "cdm"
 MANIFEST = "/manifests/bankingAccelerator.manifest.cdm.json"
+EMBEDDINGS_FILE = Path(__file__).parent.parent / "data" / "embeddings.json"
 THRESHOLD = 0.6
 
 
-def load_index() -> Collection:
-    """Load the CDM Banking scope, turn it into entries and embed them into a new index."""
+def build_index_entries() -> list[Entry]:
+    """Load the CDM Banking scope and turn it into entries, plus the banking catalog."""
     entities = load_entities(CDM_ROOT, MANIFEST)
     entries = [entry for entity in entities for entry in build_entries(entity)]
     entries.append(build_catalog_entry([entity for entity in entities if entity.layer == "banking"]))
-    return create_index(entries, gemini.embed)
+    return entries
+
+
+def load_index() -> Collection:
+    """Build the index from the stored entry vectors, without calling Gemini."""
+    stored = json.loads(EMBEDDINGS_FILE.read_text()) if EMBEDDINGS_FILE.is_file() else {}
+
+    def stored_embed(texts: list[str], task_type: str) -> list[list[float]]:
+        missing = [text for text in texts if text not in stored]
+        if missing:
+            raise RuntimeError(
+                f"{len(missing)} entries have no stored vector, "
+                "run: python -m scripts.store_index_embeddings"
+            )
+        return [stored[text] for text in texts]
+
+    return create_index(build_index_entries(), stored_embed)
 
 
 @asynccontextmanager

@@ -1,6 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
 
+from app import api
 from app.api import app
 from app.knowledge_base import Entry, Hit
 
@@ -53,3 +54,21 @@ def test_missing_key_gives_clear_message(monkeypatch):
     with pytest.raises(RuntimeError, match="GEMINI_API_KEY is not set"):
         with TestClient(app):
             pass
+
+
+def test_load_index_uses_stored_vectors(monkeypatch):
+    def gemini_must_not_be_called(texts, task_type):
+        raise AssertionError("Gemini was called at startup")
+
+    monkeypatch.setattr(api.gemini, "embed", gemini_must_not_be_called)
+
+    assert api.load_index().count() == len(api.build_index_entries())
+
+
+def test_stale_embeddings_give_clear_error(monkeypatch, tmp_path):
+    stale = tmp_path / "embeddings.json"
+    stale.write_text("{}")
+    monkeypatch.setattr(api, "EMBEDDINGS_FILE", stale)
+
+    with pytest.raises(RuntimeError, match="python -m scripts.store_index_embeddings"):
+        api.load_index()
