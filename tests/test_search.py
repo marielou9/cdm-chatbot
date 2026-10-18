@@ -73,3 +73,16 @@ def test_apostrophes_are_not_taken_for_quoted_names(index):
 
 def test_acronyms_are_not_taken_for_entity_names(index):
     assert search(index, QUESTIONS[11], stored_embed, THRESHOLD) != []
+
+
+def test_question_2_finds_contact_and_organization_entries(index):
+    hits = search(index, QUESTIONS[1], stored_embed, THRESHOLD)
+
+    entities = {h.entry.entity for h in hits}
+    assert {"Contact", "Organization"} <= entities
+
+
+def test_question_5_finds_branch_relationships_among_hits(index):
+    hits = search(index, QUESTIONS[4], stored_embed, THRESHOLD)
+
+    assert ("banking", "Branch", "relationships") in {(h.entry.layer, h.entry.entity, h.entry.kind) for h in hits}
