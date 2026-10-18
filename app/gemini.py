@@ -4,6 +4,7 @@ from google import genai
 from google.genai import types
 
 EMBEDDING_MODEL = "gemini-embedding-001"
+ANSWER_MODEL = "gemini-3.5-flash-lite"
 DIMENSIONS = 768
 BATCH_SIZE = 100
 
@@ -29,8 +30,6 @@ def _normalize(vector: list[float]) -> list[float]:
     length = math.sqrt(sum(x * x for x in vector))
     return [x / length for x in vector]
 
-
-ANSWER_MODEL = "gemini-3.5-flash-lite"
 
 
 def complete(prompt: str) -> str:
