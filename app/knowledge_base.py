@@ -8,9 +8,14 @@ from chromadb.api.models.Collection import Collection
 
 from app.cdm import Entity
 
+# embedding function, texts plus task type in, vectors out
 Embed = Callable[[list[str], str], list[list[float]]]
+
+# search limits
 MAX_HITS = 5
 THRESHOLD = 0.6
+
+# entity names in questions, 'Quoted' or CamelCase like CryptoWallet
 QUOTED_NAME = re.compile(r"'([A-Z]\w*)'")
 CAMEL_CASE_NAME = re.compile(r"\b(?=\w*[a-z])[A-Z][a-z0-9]*[A-Z]\w*\b")
 
@@ -34,15 +39,21 @@ class Entry:
 
     def __post_init__(self):
         """Use the full text for the vector when no shorter embed text is given."""
+
         if not self.embed_text:
             self.embed_text = self.text
 
 
 def build_entries(entity: Entity) -> list[Entry]:
     """Turn one entity into its overview, attributes and relationships entries."""
+
+    # label tells twins apart, like "banking Account"
     label = f"{entity.layer} {entity.name}"
+
     return [
         Entry(_overview_text(label, entity), entity.name, entity.layer, "overview"),
+
+        # attributes embedded from names only, full text for the model
         Entry(
             _attributes_text(label, entity),
             entity.name,
@@ -50,40 +61,54 @@ def build_entries(entity: Entity) -> list[Entry]:
             "attributes",
             embed_text=_attribute_names_text(label, entity),
         ),
+
         Entry(_relationships_text(label, entity), entity.name, entity.layer, "relationships"),
     ]
 
 
 def _overview_text(label: str, entity: Entity) -> str:
     """Describe what the entity is and which entity it extends."""
+
     parts = [entity.description] if entity.description else []
+
+    # name the parent
     if entity.extends:
         parts.append(f"It extends {entity.extends}.")
+
     return f"{label}: {' '.join(parts)}"
 
 
 def _attributes_text(label: str, entity: Entity) -> str:
     """List every attribute of the entity, one line each."""
+
     lines = [f"{label} has these attributes:"]
+
+    # one line per attribute
     for attribute in entity.attributes:
         lines.append(f"- {attribute.name} ({attribute.data_type}): {attribute.description}")
+
     return "\n".join(lines)
 
 
 def _attribute_names_text(label: str, entity: Entity) -> str:
     """List only the attribute names, short enough to embed for every entity."""
+
     names = ", ".join(attribute.name for attribute in entity.attributes)
     return f"{label} has these attributes: {names}"
 
 
 def _relationships_text(label: str, entity: Entity) -> str:
     """List every relationship of the entity, one line each."""
+
     lines = [f"{label} has these relationships:"]
+
+    # one line per relationship
     for relationship in entity.relationships:
         lines.append(
             f"- {relationship.attribute} refers to {relationship.target}, "
             f"foreign key {relationship.foreign_key}."
         )
+
     return "\n".join(lines)
 
 
@@ -92,8 +117,11 @@ def build_catalog_entry(entities: list[Entity]) -> Entry:
 
     Raises ValueError for an empty list, a catalog needs at least one entity.
     """
+
     if not entities:
         raise ValueError("A catalog entry needs at least one entity")
+
+    # all names in one sentence
     layer = entities[0].layer
     names = ", ".join(entity.name for entity in entities)
     return Entry(f"The {layer} model contains these entities: {names}.", "", layer, "catalog")
@@ -109,10 +137,14 @@ class Hit:
 
 def create_index(entries: list[Entry], embed: Embed) -> Collection:
     """Embed the entries and store them in a new in-memory Chroma collection using cosine distance."""
+
+    # new in-memory collection, telemetry off
     client = chromadb.EphemeralClient(settings=chromadb.config.Settings(anonymized_telemetry=False))
     collection = client.create_collection(
         name=f"cdm-{uuid.uuid4().hex}", configuration={"hnsw": {"space": "cosine"}}
     )
+
+    # store vector, full text and labels per entry
     collection.add(
         ids=[str(number) for number in range(len(entries))],
         embeddings=embed([entry.embed_text for entry in entries], "RETRIEVAL_DOCUMENT"),
@@ -122,6 +154,7 @@ def create_index(entries: list[Entry], embed: Embed) -> Collection:
             for e in entries
         ],
     )
+
     return collection
 
 
@@ -130,10 +163,16 @@ def search(index: Collection, question: str, embed: Embed, threshold: float) -> 
 
     A question naming an entity that is not in the index gets no hits at all.
     """
+
+    # unknown entity, no search
     if _names_unknown_entity(index, question):
         return []
+
+    # vector search
     result = index.query(query_embeddings=embed([question], "RETRIEVAL_QUERY"), n_results=MAX_HITS)
     hits = []
+
+    # keep hits above the threshold
     for text, metadata, distance in zip(
         result["documents"][0], result["metadatas"][0], result["distances"][0]
     ):
@@ -141,11 +180,17 @@ def search(index: Collection, question: str, embed: Embed, threshold: float) -> 
         if score >= threshold:
             entry = Entry(text, metadata["entity"], metadata["layer"], metadata["kind"], metadata["embed_text"])
             hits.append(Hit(entry, score))
+
     return hits
 
 
 def _names_unknown_entity(index: Collection, question: str) -> bool:
     """Tell whether the question names an entity, quoted or in CamelCase, that the index does not know."""
+
+    # entity names in the index
     known = {metadata["entity"].lower() for metadata in index.get(include=["metadatas"])["metadatas"]}
+
+    # entity names in the question
     candidates = set(QUOTED_NAME.findall(question)) | set(CAMEL_CASE_NAME.findall(question))
+
     return any(candidate.lower() not in known for candidate in candidates)
