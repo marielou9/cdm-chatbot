@@ -9,6 +9,11 @@ class Entry:
     entity: str
     layer: str
     kind: str
+    embed_text: str = ""
+
+    def __post_init__(self):
+        if not self.embed_text:
+            self.embed_text = self.text
 
 
 def build_entries(entity: Entity) -> list[Entry]:
@@ -16,7 +21,13 @@ def build_entries(entity: Entity) -> list[Entry]:
     label = f"{entity.layer} {entity.name}"
     return [
         Entry(_overview_text(label, entity), entity.name, entity.layer, "overview"),
-        Entry(_attributes_text(label, entity), entity.name, entity.layer, "attributes"),
+        Entry(
+            _attributes_text(label, entity),
+            entity.name,
+            entity.layer,
+            "attributes",
+            embed_text=_attribute_names_text(label, entity),
+        ),
         Entry(_relationships_text(label, entity), entity.name, entity.layer, "relationships"),
     ]
 
@@ -35,6 +46,12 @@ def _attributes_text(label: str, entity: Entity) -> str:
     for attribute in entity.attributes:
         lines.append(f"- {attribute.name} ({attribute.data_type}): {attribute.description}")
     return "\n".join(lines)
+
+
+def _attribute_names_text(label: str, entity: Entity) -> str:
+    """List only the attribute names, short enough to embed for every entity."""
+    names = ", ".join(attribute.name for attribute in entity.attributes)
+    return f"{label} has these attributes: {names}"
 
 
 def _relationships_text(label: str, entity: Entity) -> str:

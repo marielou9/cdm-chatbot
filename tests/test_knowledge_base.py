@@ -37,3 +37,10 @@ def test_catalog_entry_lists_all_entities():
 
     assert catalog.kind == "catalog"
     assert catalog.text == "The banking model contains these entities: Account, Branch."
+
+
+def test_attributes_entry_embeds_only_names():
+    attributes = build_entries(ACCOUNT)[1]
+
+    assert attributes.embed_text == "banking Account has these attributes: availableLimit"
+    assert "Total amount remaining" in attributes.text
