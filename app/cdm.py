@@ -122,19 +122,21 @@ def _relationships_of(member: dict) -> list[Relationship]:
     name = member["name"]
     reference = member["entity"]["entityReference"]
     if isinstance(reference, dict):
-        return [
+        relationships = [
             Relationship(name, option["entity"]["entityReference"], f"{name}Id")
             for option in reference.get("hasAttributes", [])
         ]
-    foreign_key = (
-        member.get("resolutionGuidance", {})
-        .get("entityByReference", {})
-        .get("foreignKeyAttribute", {})
-        .get("name", "")
-    )
-    if foreign_key == "id":
-        foreign_key = f"{name}Id"
-    return [Relationship(name, reference, foreign_key)]
+    else:
+        foreign_key = (
+            member.get("resolutionGuidance", {})
+            .get("entityByReference", {})
+            .get("foreignKeyAttribute", {})
+            .get("name", "")
+        )
+        if foreign_key == "id":
+            foreign_key = f"{name}Id"
+        relationships = [Relationship(name, reference, foreign_key)]
+    return relationships
 
 
 def _members(definition: dict) -> list[dict]:
