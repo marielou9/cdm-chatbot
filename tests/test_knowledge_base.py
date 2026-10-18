@@ -1,3 +1,5 @@
+import pytest
+
 from app.cdm import Attribute, Entity, Relationship
 from app.knowledge_base import build_catalog_entry, build_entries
 
@@ -52,3 +54,8 @@ def test_overview_without_description_has_no_double_space():
     overview = build_entries(entity)[0]
 
     assert overview.text == "crmCommon Account: It extends foundationCommon Account."
+
+
+def test_catalog_entry_needs_entities():
+    with pytest.raises(ValueError, match="at least one entity"):
+        build_catalog_entry([])

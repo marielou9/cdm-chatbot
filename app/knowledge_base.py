@@ -78,7 +78,12 @@ def _relationships_text(label: str, entity: Entity) -> str:
 
 
 def build_catalog_entry(entities: list[Entity]) -> Entry:
-    """List the names of entities from one layer in a single entry, for listing questions."""
+    """List the names of entities from one layer in a single entry, for listing questions.
+
+    Raises ValueError for an empty list, a catalog needs at least one entity.
+    """
+    if not entities:
+        raise ValueError("A catalog entry needs at least one entity")
     layer = entities[0].layer
     names = ", ".join(entity.name for entity in entities)
     return Entry(f"The {layer} model contains these entities: {names}.", "", layer, "catalog")
