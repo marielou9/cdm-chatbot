@@ -40,12 +40,19 @@ The response holds the answer and the CDM entries it is based on:
 
 More questions to try:
 
+- How does a 'Contact' relate to an 'Organization'? (the data has no direct link, the answer says so and names what it does contain)
 - What are the core attributes of the 'Account' entity?
 - Where do I store a customer's credit limit?
 - Which entities are in the Banking model?
 - What attributes does the 'CryptoWallet' entity have? (not in the CDM, the service says so)
 
 ## Overview
+
+```
+question → unknown-entity check → vector search (top 5, similarity ≥ 0.6)
+         → nothing found: fixed "no information" answer, no LLM call
+         → else: split into ≤ 3 sub-questions → search each → answer only from the found entries
+```
 
 **Stack**
 - Python 3.14, FastAPI
@@ -54,13 +61,30 @@ More questions to try:
 - Docker
 
 **Data**
-- Microsoft Common Data Model, the Dynamics 365 Banking accelerator (24 entities) and the 23 common entities it builds on, with inheritance resolved.
+- Microsoft Common Data Model: the Dynamics 365 Banking accelerator (24 entities) and the 23 common objects it builds on, such as Organization, BusinessUnit and User, with inheritance resolved.
+- Source labels name the layer an entity comes from: `banking` for the accelerator, `crmCommon`, `foundationCommon` and `applicationCommon` for the CDM common objects. That keeps the banking Account and the common Account apart.
 
 **Embedding and retrieval**
-- Each entity becomes three short texts, an overview, its attributes and its relationships, plus one catalog of all banking entities.
+- Each entity becomes three entries: an overview, its attributes and its relationships, plus one catalog of all banking entities.
+- Relationships are the entity attributes of each entity with their foreign keys, including inherited ones and lookups that can point to several entities.
+- Attributes entries are embedded from their field names only, because `gemini-embedding-001` reads at most 2,048 tokens. The language model still reads the full descriptions.
 - The vectors are computed once and stored in `data/embeddings.json`, so the service starts without embedding calls.
-- A question is split into sub-questions, and the answer may only use the entries found for them.
-- If a question names an unknown entity or nothing matches closely enough, the answer is a fixed "no information".
+
+**Limitations**
+- Relationships are listed per entity, outgoing only. Paths over several entities depend on finding each step.
+- Fields every Dynamics entity shares, like `owningBusinessUnit`, are not loaded, so Contact → BusinessUnit → Organization is not found.
+- Allowed values of code fields are not included.
+- The similarity threshold of 0.6 was measured on the example questions.
+
+## Project layout
+
+```
+app/cdm.py              load CDM manifests and entity files, resolve inheritance and relationships
+app/knowledge_base.py   build the entries, the Chroma index and the search with its checks
+app/answerer.py         split questions, merge results, ask Gemini
+app/gemini.py           embedding and answer calls
+app/api.py              FastAPI endpoint and startup
+```
 
 ## Development
 
@@ -72,7 +96,7 @@ pip install -r requirements.txt
 pytest
 ```
 
-The tests run offline. They use stored vectors in `tests/testdata/embeddings.json` instead of calling Gemini.
+The tests run offline. They use stored vectors in `tests/testdata/embeddings.json` instead of calling Gemini. They cover CDM parsing with inheritance, entry building, retrieval on the task's example questions, the no-information path and the API's error handling.
 
 When the CDM data or the entry texts change, the stored vectors must be regenerated (needs `GEMINI_API_KEY`):
 
