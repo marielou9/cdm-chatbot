@@ -70,3 +70,7 @@ def test_unknown_named_entity_returns_no_hits(index, question_number):
 
 def test_apostrophes_are_not_taken_for_quoted_names(index):
     assert search(index, QUESTIONS[10], stored_embed, THRESHOLD) != []
+
+
+def test_acronyms_are_not_taken_for_entity_names(index):
+    assert search(index, QUESTIONS[11], stored_embed, THRESHOLD) != []

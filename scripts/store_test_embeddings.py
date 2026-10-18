@@ -32,6 +32,7 @@ QUESTIONS = [
     "What attributes does the 'FHLoan' entity have?",
     "What is the weather in Hamburg today?",
     "Where's the customer's credit limit stored?",
+    "What is the definition of a 'Contact' in the CDM?",
 ]
 
 

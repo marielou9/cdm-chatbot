@@ -11,7 +11,7 @@ from app.cdm import Entity
 Embed = Callable[[list[str], str], list[list[float]]]
 MAX_HITS = 5
 QUOTED_NAME = re.compile(r"'([A-Z]\w*)'")
-CAMEL_CASE_NAME = re.compile(r"\b[A-Z][a-z0-9]*[A-Z]\w*\b")
+CAMEL_CASE_NAME = re.compile(r"\b(?=\w*[a-z])[A-Z][a-z0-9]*[A-Z]\w*\b")
 
 
 @dataclass
