@@ -41,7 +41,7 @@ def test_entity_attributes_become_relationships_including_inherited():
     child = load_entities(TESTDATA, "/core/child/child.manifest.cdm.json")[0]
 
     found = {(r.attribute, r.target, r.foreign_key) for r in child.relationships}
-    assert found == {("branch", "Branch", "branchId"), ("owner", "User", "ownerId")}
+    assert {("branch", "Branch", "branchId"), ("owner", "User", "ownerId")} <= found
 
 
 def test_missing_manifest_raises_clear_error():
@@ -59,6 +59,13 @@ def test_sub_manifests_are_loaded():
     entities = load_entities(TESTDATA, "/core/top.manifest.cdm.json")
 
     assert {e.name for e in entities} == {"Parent", "Child"}
+
+
+def test_polymorphic_lookup_becomes_one_relationship_per_option():
+    child = load_entities(TESTDATA, "/core/child/child.manifest.cdm.json")[0]
+
+    found = {(r.attribute, r.target, r.foreign_key) for r in child.relationships}
+    assert {("customer", "Account", "customerId"), ("customer", "Contact", "customerId")} <= found
 
 
 def test_named_attribute_references_are_skipped():

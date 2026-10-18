@@ -44,7 +44,39 @@
                 },
                 "description": "The branch this child belongs to."
               },
-              "ownerIdAttribute"
+              "ownerIdAttribute",
+              {
+                "entity": {
+                  "entityReference": {
+                    "entityName": "Customer",
+                    "hasAttributes": [
+                      {
+                        "entity": {
+                          "entityReference": "Account"
+                        },
+                        "name": "accountOption"
+                      },
+                      {
+                        "entity": {
+                          "entityReference": "Contact"
+                        },
+                        "name": "contactOption"
+                      }
+                    ]
+                  }
+                },
+                "name": "customer",
+                "resolutionGuidance": {
+                  "entityByReference": {
+                    "foreignKeyAttribute": {
+                      "name": "id",
+                      "purpose": "hasA",
+                      "dataType": "entityId"
+                    }
+                  }
+                },
+                "description": "The customer, an account or a contact."
+              }
             ]
           }
         }

@@ -79,20 +79,30 @@ def _own_attributes(definition: dict) -> list[Attribute]:
 
 
 def _own_relationships(definition: dict) -> list[Relationship]:
-    """Return the relationships an entity adds itself, one per entity attribute."""
+    """Return the relationships an entity adds itself, from its entity attributes."""
     relationships = []
     for member in _members(definition):
         if "entity" in member:
-            foreign_key = (
-                member.get("resolutionGuidance", {})
-                .get("entityByReference", {})
-                .get("foreignKeyAttribute", {})
-                .get("name", "")
-            )
-            relationships.append(
-                Relationship(member["name"], member["entity"]["entityReference"], foreign_key)
-            )
+            relationships += _relationships_of(member)
     return relationships
+
+
+def _relationships_of(member: dict) -> list[Relationship]:
+    """Return one relationship, or one per option if the target can be several entities."""
+    name = member["name"]
+    reference = member["entity"]["entityReference"]
+    if isinstance(reference, dict):
+        return [
+            Relationship(name, option["entity"]["entityReference"], f"{name}Id")
+            for option in reference.get("hasAttributes", [])
+        ]
+    foreign_key = (
+        member.get("resolutionGuidance", {})
+        .get("entityByReference", {})
+        .get("foreignKeyAttribute", {})
+        .get("name", "")
+    )
+    return [Relationship(name, reference, foreign_key)]
 
 
 def _members(definition: dict) -> list[dict]:
