@@ -37,12 +37,12 @@ def ask(question: str, search: Search, complete: Complete) -> Answer:
     without calling the language model.
     """
     guarded_search = _guarded(search, "The search is not available")
-    hits = guarded_search(question)
+    hits = list(guarded_search(question))
     if not hits:
         return Answer(NO_INFORMATION)
     llm = _guarded(complete, "The language model is not available")
     for sub_question in _sub_questions(question, llm):
-        hits += guarded_search(sub_question)
+        hits.extend(guarded_search(sub_question))
     sources = _unique_best_first(hits)
     context = "\n\n".join(entry.text for entry in sources)
     return Answer(llm(ANSWER_PROMPT.format(context=context, question=question)), sources)

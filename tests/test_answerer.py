@@ -87,3 +87,11 @@ def test_prompt_handles_undefined_terms():
     ask(QUESTION, lambda question: [CONTACT], llm)
 
     assert "If the question uses a term the context does not define" in llm.prompts[-1]
+
+
+def test_ask_does_not_change_the_search_result():
+    result = [CONTACT]
+
+    ask(QUESTION, lambda question: result, FakeLLM())
+
+    assert result == [CONTACT]
