@@ -3,5 +3,31 @@
   "manifestName": "child",
   "entities": [
     { "type": "LocalEntity", "entityName": "Child", "entityPath": "Child.cdm.json/Child" }
+  ],
+  "relationships": [
+    {
+      "fromEntity": "Child.cdm.json/Child",
+      "fromEntityAttribute": "owningBusinessUnit",
+      "toEntity": "/core/base/BusinessUnit.cdm.json/BusinessUnit",
+      "toEntityAttribute": "businessUnitId"
+    },
+    {
+      "fromEntity": "Child.cdm.json/Child",
+      "fromEntityAttribute": "branchId",
+      "toEntity": "/core/base/Branch.cdm.json/Branch",
+      "toEntityAttribute": "branchId"
+    },
+    {
+      "fromEntity": "Child.cdm.json/Child",
+      "fromEntityAttribute": "ownerId",
+      "toEntity": "/core/base/User.cdm.json/User",
+      "toEntityAttribute": "systemUserId"
+    },
+    {
+      "fromEntity": "Child.cdm.json/Child",
+      "fromEntityAttribute": "ownerId",
+      "toEntity": "/core/base/Team.cdm.json/Team",
+      "toEntityAttribute": "teamId"
+    }
   ]
 }

@@ -1,7 +1,8 @@
 """Load Microsoft CDM entity definitions from manifest and entity files.
 
-Resolves inheritance along the extendsEntity chain and turns entity attributes
-into relationships, so every entity carries everything it inherits.
+Resolves inheritance along the extendsEntity chain, turns entity attributes
+into relationships and adds the ones only the manifest lists, so every entity
+carries everything it inherits.
 """
 
 from dataclasses import dataclass, field
@@ -67,19 +68,46 @@ def load_entities(root: Path, manifest: str) -> list[Entity]:
 
     # read the manifest
     manifest_doc = json.loads(manifest_path.read_text())
-    entities = []
+    entities = {}
 
     # load each listed entity
     for entry in manifest_doc["entities"]:
         file_name, entity_name = entry["entityPath"].rsplit("/", 1)
         entity_path = _resolve_path(root, manifest_path.parent, file_name)
-        entities.append(_load_entity(root, entity_path, entity_name))
+        entities[entry["entityPath"]] = _load_entity(root, entity_path, entity_name)
+
+    # add links only the manifest lists
+    _add_manifest_relationships(manifest_doc, entities)
 
     # follow nested manifests
+    loaded = list(entities.values())
     for sub_manifest in manifest_doc.get("subManifests", []):
-        entities += load_entities(root, sub_manifest["definition"])
+        loaded += load_entities(root, sub_manifest["definition"])
 
-    return entities
+    return loaded
+
+
+def _add_manifest_relationships(manifest_doc: dict, entities: dict[str, Entity]) -> None:
+    """Add the relationships a manifest lists to the entities they start from.
+
+    entities: the entities of this manifest, keyed by their entityPath.
+    Links from entities outside this manifest are skipped.
+    """
+
+    # each link of the manifest
+    for link in manifest_doc.get("relationships", []):
+        # entity, target and foreign key of the link
+        entity = entities.get(link["fromEntity"])
+        target = link["toEntity"].rsplit("/", 1)[1]
+        foreign_key = link["fromEntityAttribute"]
+
+        # only entities of this manifest
+        if entity is not None:
+            known = {(r.foreign_key, r.target) for r in entity.relationships}
+
+            # only links the entity does not have yet
+            if (foreign_key, target) not in known:
+                entity.relationships.append(Relationship(foreign_key, target, foreign_key))
 
 
 def _load_entity(root: Path, path: Path, name: str) -> Entity:

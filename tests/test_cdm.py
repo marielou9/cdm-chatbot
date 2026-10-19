@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from app.cdm import load_entities
+from app.cdm import Relationship, load_entities
 
 # hand-made CDM sample and the real CDM subset
 TESTDATA = Path(__file__).parent / "testdata" / "cdm"
@@ -103,6 +103,33 @@ def test_foreign_key_named_id_gets_attribute_prefix():
     # file says "id", result says originatingLeadId
     lead = next(r for r in child.relationships if r.attribute == "originatingLead")
     assert lead.foreign_key == "originatingLeadId"
+
+
+def test_manifest_relationships_add_links_missing_in_entity_files():
+
+    child = load_entities(TESTDATA, CHILD_MANIFEST)[0]
+
+    # owningBusinessUnit is only in the manifest
+    found = {(r.attribute, r.target, r.foreign_key) for r in child.relationships}
+    assert ("owningBusinessUnit", "BusinessUnit", "owningBusinessUnit") in found
+
+
+def test_manifest_relationships_known_by_foreign_key_are_not_added_twice():
+
+    child = load_entities(TESTDATA, CHILD_MANIFEST)[0]
+
+    # branchId is in the entity file and the manifest
+    branch_links = [r for r in child.relationships if r.foreign_key == "branchId"]
+    assert branch_links == [Relationship("branch", "Branch", "branchId")]
+
+
+def test_manifest_lookup_with_several_targets_keeps_each_target():
+
+    child = load_entities(TESTDATA, CHILD_MANIFEST)[0]
+
+    # ownerId points to User or Team
+    owner_targets = sorted(r.target for r in child.relationships if r.foreign_key == "ownerId")
+    assert owner_targets == ["Team", "User"]
 
 
 # ============================================================

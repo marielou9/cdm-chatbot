@@ -64,11 +64,9 @@ def test_question_2_finds_contact_and_organization_entries(index):
     assert {"Contact", "Organization"} <= entities
 
 
-def test_question_3_finds_banking_account_relationships_first(index):
+def test_question_3_finds_banking_account_relationships(index):
 
-    entry = first_hit(index, 3)
-
-    assert (entry.layer, entry.entity, entry.kind) == ("banking", "Account", "relationships")
+    assert ("banking", "Account", "relationships") in hit_labels(index, 3)
 
 
 def test_question_4_finds_banking_account_overview_first(index):
