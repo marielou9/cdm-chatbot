@@ -61,7 +61,7 @@ Questions to try
 ### At startup
 
 1. **`app/api.py`** checks that `GEMINI_API_KEY` is set and starts building the index.
-2. **`app/cdm.py`** reads every entity file and follows the inheritance chain, so the banking Account carries all attributes and relationships of its parent layers.
+2. **`app/cdm.py`** reads every entity file and follows the inheritance chain, so the banking Account carries all attributes and relationships of its parent layers, plus the relationships only the manifest lists.
 3. **`app/knowledge_base.py`** turns each entity into an overview, an attributes and a relationships entry and loads them with their stored vectors into an in-memory Chroma index.
 
 ### For each question
@@ -84,21 +84,23 @@ Questions to try
 - **Kept** only name, data type and description of each attribute, the trait and resolution metadata of the CDM files is left out.
 - **Inheritance** is resolved layer by layer, banking → crmCommon → foundationCommon → applicationCommon, and stops at `CdsStandard`.
 - **Relationships** come from attributes that point to another entity, including inherited ones and lookups with several targets.
-- **Layer labels** like `banking` or `crmCommon` keep the four `Account` definitions apart.
+- **Manifest relationships** add the links the entity files leave out, like `owningBusinessUnit` or `ownerId` from `CdsStandard`.
+- **Layer labels** like `banking` or `crmCommon` keep the two indexed `Account` entities apart.
 - **Three entries per entity,** overview, attributes and relationships, plus one catalog of all banking entities.
 - **Attributes entries** are embedded from their field names only, because the longest entry is far beyond the embedding model's limit of 2,048 tokens, while the language model still gets the full text.
 
 ### Retrieval
 
 - **Top 5** entries per search, set as `MAX_HITS` in `app/knowledge_base.py`.
-- **Similarity of at least 0.6,** set as `THRESHOLD` in the same file, measured on the example questions, the lowest one needed 0.64, an off-topic question scored 0.50.
+- **Similarity of at least 0.6,** set as `THRESHOLD` in the same file, measured on the example questions, the lowest one needed 0.64, an off-topic question scored 0.48.
 - **Up to 3 sub-questions,** set as `MAX_SUB_QUESTIONS` in `app/answerer.py`, each searched like the full question.
 - **Merged results** keep every entry once, at its best score.
 - **All three values** can be changed without new embeddings, only the image has to be rebuilt.
 
 ## Limitations
 
-- **Shared fields** like `owningBusinessUnit` not loaded, so Contact → BusinessUnit → Organization is not found
+- **Shared fields** like `createdOn` from `CdsStandard` missing from the attributes entries, only their links come from the manifest
+- **Two-step links** like Contact → BusinessUnit → Organization not followed, the second entry is often not retrieved
 - **Relationships** outgoing only
 - **Code fields** allowed values not included
 - **Threshold** 0.6, measured on the example questions
