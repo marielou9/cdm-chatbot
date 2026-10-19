@@ -103,8 +103,6 @@ Questions to try
 - **Two-step links** like Contact → BusinessUnit → Organization not followed, the second entry is often not retrieved
 - **Relationships** outgoing only
 - **Code fields** allowed values not included
-- **Threshold** 0.6, measured on the example questions
-- **Field origin** not marked per attribute, so a question about what the banking layer adds relies on the field descriptions
 
 ## Development
 
