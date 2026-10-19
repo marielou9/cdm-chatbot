@@ -118,4 +118,4 @@ The tests run offline on stored vectors. They cover CDM parsing, entry building,
 
 ## Data
 
-The files in `data/cdm/` are an unchanged subset of the [Microsoft Common Data Model](https://github.com/microsoft/CDM), © Microsoft, licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+The files in `data/cdm/` are an unchanged subset of the [Microsoft Common Data Model](https://github.com/microsoft/CDM), © Microsoft, licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). `scripts/fetch_cdm_subset.py` downloads them from commit `dd21d71` of the CDM repo, starting at the banking accelerator manifest.
